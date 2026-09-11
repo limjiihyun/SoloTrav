@@ -129,6 +129,7 @@ export const travelApi = {
       size?: number;
       arrange?: TourArrange;
     } & RegionFilter,
+    signal?: AbortSignal,
   ): Promise<TourPage<TourContent>> => {
     const pageNo = params.page ?? 1;
     const size = params.size ?? 20;
@@ -143,12 +144,18 @@ export const travelApi = {
           numOfRows: size,
         }),
       ),
+      { signal },
     );
     return toPage(toTourContents(data), data, pageNo, size);
   },
 
   /**
    * 지역 전체 관광정보. 정확한 사용자·지도 좌표는 보내지 않습니다.
+   *
+   * ⚠️ 서버에 대표 좌표가 등록된 지역만 결과가 옵니다. 2026-09 기준 충북에서는
+   * 청주시만 데이터가 있고 나머지 10개 시군은 200 OK 에 totalCount 0 입니다.
+   * 그래서 지도 마커는 이 함수 대신 법정동 코드로 조회하는 listSpotsByRegion
+   * 을 씁니다. 서버 레지스트리가 채워지기 전까지 새로 쓰지 마세요.
    */
   listNearbySpots: async (
     params: { regionName: string; page?: number; size?: number },

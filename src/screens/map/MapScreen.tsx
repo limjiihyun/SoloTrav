@@ -129,8 +129,14 @@ function MapScreen({ onBack }: TabScreenProps) {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   /** 마지막으로 조회를 확정한 화면 영역. 지도 이동 중에는 바꾸지 않습니다. */
   const [queryBounds, setQueryBounds] = useState<MapBounds | null>(null);
+  /** 현재 조회 중심점에 가장 가까운 충북 시군구 (예: 괴산군, 단양군 등) */
+  const currentCity = useMemo(
+    () => getNearestCity(queryCenter.lat, queryCenter.lng),
+    [queryCenter.lat, queryCenter.lng],
+  );
   const safety = useSafetyPlaces(
     queryCenter,
+    currentCity,
     safetyTypes,
     safetyFilterOpen,
     mapCenter,
@@ -211,12 +217,6 @@ function MapScreen({ onBack }: TabScreenProps) {
     return () => subscription.remove();
   }, [sosOpen, searchOpen, safetyFilterOpen, selectedId, selectedPoiId]);
 
-  /** 현재 조회 중심점에 가장 가까운 충북 시군구 (예: 괴산군, 단양군 등) */
-  const currentCity = useMemo(
-    () => getNearestCity(queryCenter.lat, queryCenter.lng),
-    [queryCenter.lat, queryCenter.lng],
-  );
-
   /*
    * 축제는 다른 API 를 씁니다.
    * 관광정보 조회(locationBasedList)로는 contentTypeId=15 결과가 거의 0건이고,
@@ -229,7 +229,7 @@ function MapScreen({ onBack }: TabScreenProps) {
     retry: retryTour,
   } = useNearbyPlaces(
     queryCenter,
-    currentCity.sigungu,
+    currentCity,
     category,
     !isFestival,
     undefined,

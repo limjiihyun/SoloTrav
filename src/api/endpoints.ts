@@ -142,11 +142,39 @@ export const ENDPOINTS = {
     limit?: number;
   }) => withQuery(`/sos/safety-facilities`, params),
 
-  // 지도 안전 장소 레이어
-  hospitals: () => `/hospitals`,
-  femaleSafetyHouses: () => `/female-safety-houses`,
-  cctvs: () => `/cctvs`,
-  smartStreetlights: () => `/smart-streetlights`,
+  // ── 지도 안전 장소 레이어 ──
+  // 사용자 좌표는 보내지 않고 시군명·코드로만 좁힙니다. 지역 필터 없이 부르면
+  // 전국 목록의 첫 페이지만 와서 지도 화면 안에 아무것도 안 남습니다.
+  // 엔드포인트마다 필터·페이징 파라미터 이름이 제각각이라(2026-09 실측)
+  // 아래 주석의 규약을 그대로 따라야 합니다.
+
+  /** 병·의원 — sido 와 sigungu 를 **함께** 줘야 시군 필터가 동작합니다. numOfRows 1~100. */
+  hospitals: (params: {
+    sido: string;
+    sigungu: string;
+    pageNo?: number;
+    numOfRows?: number;
+  }) => withQuery(`/hospitals`, params),
+  /**
+   * 여성안심지킴이집 — 이 목록 API 는 어떤 지역 필터도 받지 않습니다.
+   * 지도 레이어는 regionName 을 지키는 공개 API(safetyFacilities)를 씁니다.
+   */
+  femaleSafetyHouses: (params?: { pageNo?: number; numOfRows?: number }) =>
+    withQuery(`/female-safety-houses`, params),
+  /** CCTV — localGovernmentCode(City.cctvLocalGovernmentCode)로 시군 필터. limit 1~100. */
+  cctvs: (params: {
+    localGovernmentCode: string;
+    page?: number;
+    limit?: number;
+  }) => withQuery(`/cctvs`, params),
+  /** 스마트 가로등 — sido 필수, sigungu 는 함께 주면 시군까지 좁혀집니다. limit 1~100. */
+  smartStreetlights: (params: {
+    sido: string;
+    sigungu?: string;
+    page?: number;
+    limit?: number;
+  }) => withQuery(`/smart-streetlights`, params),
+  /** 충북 음식업소 — 지역 파라미터 없음. 서버 데이터가 통틀어 10건뿐입니다(2026-09). */
   chungbukFoods: (params?: { currentPage?: number; perPage?: number }) =>
     withQuery(`/foods/chungbuk`, params),
 

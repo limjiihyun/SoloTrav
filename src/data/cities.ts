@@ -35,6 +35,12 @@ export type City = {
   districtCode: string;
   /** 기초지자체 관광지 API 의 signguCd (regionCode + districtCode) */
   municipalityCode: string;
+  /**
+   * CCTV 목록 API(/cctvs)의 localGovernmentCode.
+   * 법정동·행정기관코드 어느 체계와도 다른 데이터셋 자체 코드라 서버 응답에서
+   * 시군별로 뽑아 적었습니다(2026-09). 이 값으로 걸어야 시군 단위로 옵니다.
+   */
+  cctvLocalGovernmentCode: string;
   /** 시·군청 기준 대표 좌표 — 주변 관광지 조회에 씁니다 */
   center: { lat: number; lng: number };
 };
@@ -62,6 +68,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '800',
     municipalityCode: '43800',
+    cctvLocalGovernmentCode: '4480000',
     center: { lat: 36.9846, lng: 128.3655 },
   },
   {
@@ -79,6 +86,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '150',
     municipalityCode: '43150',
+    cctvLocalGovernmentCode: '4400000',
     center: { lat: 37.1326, lng: 128.191 },
   },
   {
@@ -96,6 +104,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '130',
     municipalityCode: '43130',
+    cctvLocalGovernmentCode: '4390000',
     center: { lat: 36.991, lng: 127.926 },
   },
   {
@@ -113,6 +122,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '770',
     municipalityCode: '43770',
+    cctvLocalGovernmentCode: '4470000',
     center: { lat: 36.9403, lng: 127.6905 },
   },
   {
@@ -130,6 +140,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '750',
     municipalityCode: '43750',
+    cctvLocalGovernmentCode: '4450000',
     center: { lat: 36.8553, lng: 127.4355 },
   },
   {
@@ -147,6 +158,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '745',
     municipalityCode: '43745',
+    cctvLocalGovernmentCode: '5570000',
     center: { lat: 36.7852, lng: 127.5814 },
   },
   {
@@ -164,6 +176,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '760',
     municipalityCode: '43760',
+    cctvLocalGovernmentCode: '4460000',
     center: { lat: 36.8153, lng: 127.7866 },
   },
   {
@@ -181,6 +194,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '110',
     municipalityCode: '43110',
+    cctvLocalGovernmentCode: '5710000',
     center: { lat: 36.6424, lng: 127.489 },
   },
   {
@@ -198,6 +212,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '720',
     municipalityCode: '43720',
+    cctvLocalGovernmentCode: '4420000',
     center: { lat: 36.4894, lng: 127.7294 },
   },
   {
@@ -215,6 +230,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '730',
     municipalityCode: '43730',
+    cctvLocalGovernmentCode: '4430000',
     center: { lat: 36.3064, lng: 127.5714 },
   },
   {
@@ -232,6 +248,7 @@ export const CITIES: City[] = [
     regionCode: '43',
     districtCode: '740',
     municipalityCode: '43740',
+    cctvLocalGovernmentCode: '4440000',
     center: { lat: 36.175, lng: 127.7765 },
   },
 ];

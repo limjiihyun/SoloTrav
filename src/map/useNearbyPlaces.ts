@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_RADIUS, REGION_PAGE_SIZE, travelApi } from '../api/travelApi';
+import type { City } from '../data/cities';
 import type { TourCategory } from '../types/tourPlace';
 import {
   isMappableTourContent,
@@ -34,7 +35,7 @@ type RegionCacheEntry = {
   expiresAt: number;
 };
 
-/** 같은 충북 목록을 지도에 들어올 때마다 다시 받지 않도록 10분간 보관합니다. */
+/** 같은 충북 목록을 지도에 들어올 때마다 다시 받지 않도록 10분간 보관합니다. (키: 법정동 시군구 코드) */
 const REGION_CACHE_TTL_MS = 10 * 60 * 1000;
 const regionCache = new Map<string, RegionCacheEntry>();
 
@@ -47,7 +48,8 @@ const INITIAL: State = {
 
 export function useNearbyPlaces(
   center: Coords,
-  regionName: string,
+  /** 조회할 충북 시군 — 법정동 코드로 관광정보를 받습니다. */
+  city: City,
   category: TourCategory,
   /** false 면 조회하지 않습니다 (축제처럼 다른 API 를 쓰는 카테고리). */
   enabled: boolean = true,
@@ -82,7 +84,8 @@ export function useNearbyPlaces(
     setState({ places: [], loading: true, error: null, totalCount: 0 });
 
     async function loadRegion() {
-      const cached = regionCache.get(regionName);
+      const cacheKey = city.municipalityCode;
+      const cached = regionCache.get(cacheKey);
       if (reloadKey === 0 && cached && cached.expiresAt > Date.now()) {
         return { items: cached.items, totalCount: cached.items.length };
       }
@@ -94,8 +97,16 @@ export function useNearbyPlaces(
         let totalPages = 1;
 
         do {
-          const page = await travelApi.listNearbySpots(
-            { regionName, page: pageNo, size: REGION_PAGE_SIZE },
+          const page = await travelApi.listSpotsByRegion(
+            {
+              regionCode: city.regionCode,
+              districtCode: city.districtCode,
+              page: pageNo,
+              size: REGION_PAGE_SIZE,
+              // 대표이미지가 없어도 마커는 찍어야 하고, 페이지를 넘기는 동안
+              // 순서가 흔들리지 않도록 제목순(A)으로 받습니다.
+              arrange: 'A',
+            },
             controller.signal,
           );
           items.push(...page.items.filter(isMappableTourContent));
@@ -107,42 +118,11 @@ export function useNearbyPlaces(
         return items;
       };
 
-      const loadAllStays = async () => {
-        const items: MappableTourContent[] = [];
-        let pageNo = 1;
-        let totalPages = 1;
-
-        do {
-          const page = await travelApi.listStays(
-            {
-              page: pageNo,
-              size: REGION_PAGE_SIZE,
-              regionCode: '43',
-              arrange: 'A',
-            },
-            controller.signal,
-          );
-          items.push(...page.items.filter(isMappableTourContent));
-          totalPages = Math.max(
-            1,
-            Math.ceil(page.totalCount / REGION_PAGE_SIZE),
-          );
-          pageNo += 1;
-        } while (pageNo <= totalPages);
-
-        return items;
-      };
-
-      // 지역 전체 API의 숙박 누락을 숙박 전용 API로 보완합니다.
-      const [tourism, stays] = await Promise.all([
-        loadAllTourism(),
-        loadAllStays(),
-      ]);
-      const merged = new Map<string, MappableTourContent>();
-      tourism.forEach(place => merged.set(place.contentId, place));
-      stays.forEach(place => merged.set(place.contentId, place));
-      const items = [...merged.values()];
-      regionCache.set(regionName, {
+      // 예전에 쓰던 지역명 기반 조회(region-based-list)는 숙박이 빠져 숙박 전용
+      // API 로 보완했었습니다. 법정동 코드 조회에는 숙박(contentTypeId=32)이
+      // 그대로 들어 있어(충북 11개 시군 건수 전부 일치) 보완 호출을 뺐습니다.
+      const items = await loadAllTourism();
+      regionCache.set(cacheKey, {
         items,
         expiresAt: Date.now() + REGION_CACHE_TTL_MS,
       });
@@ -170,7 +150,13 @@ export function useNearbyPlaces(
       });
 
     return () => controller.abort();
-  }, [enabled, regionName, reloadKey]);
+  }, [
+    enabled,
+    city.regionCode,
+    city.districtCode,
+    city.municipalityCode,
+    reloadKey,
+  ]);
 
   /**
    * 서버가 준 지역 후보 중 현재 조회 중심 반경에 들어오는 항목만 표시합니다.
