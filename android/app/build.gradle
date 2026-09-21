@@ -90,8 +90,8 @@ android {
         applicationId "com.solotravelmatemobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "0.0.15"
+        versionCode 18
+        versionName "0.0.17"
         //  · manifestPlaceholders : AndroidManifest 의 리다이렉트 스킴 kakao{키}://oauth
         //  · resValue             : SDK 가 초기화 때 읽는 문자열 리소스 kakao_app_key
         manifestPlaceholders = [KAKAO_NATIVE_APP_KEY: project.property("KAKAO_NATIVE_APP_KEY")]

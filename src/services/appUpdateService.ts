@@ -7,7 +7,7 @@
 import { Alert, Linking, Platform } from 'react-native';
 
 // 현재 앱의 설치 버전 (package.json 및 build.gradle의 versionName과 일치)
-export const CURRENT_APP_VERSION = '0.0.15';
+export const CURRENT_APP_VERSION = '0.0.17';
 export const APP_PACKAGE_NAME = 'com.solotravelmatemobile';
 export const ONESTORE_PRODUCT_ID = '0001008932';
 export const APP_STORE_ID = ''; // iOS App Store 출시 시 App ID 입력 (예: '1234567890')
