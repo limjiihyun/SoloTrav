@@ -40,11 +40,20 @@ async function openDocument(label: string, url: string | null) {
 function TermsAgreementScreen() {
   const insets = useSafeAreaInsets();
   const { completeTermsAgreement, logout } = useAuth();
-  const [agreed, setAgreed] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [termsVersion, setTermsVersion] = useState<string | null>(null);
   const [termsUrl, setTermsUrl] = useState<string | null>(null);
+
+  const isAllAgreed = termsAgreed && privacyAgreed;
+
+  const handleToggleAll = () => {
+    const nextValue = !isAllAgreed;
+    setTermsAgreed(nextValue);
+    setPrivacyAgreed(nextValue);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +93,7 @@ function TermsAgreementScreen() {
   }, []);
 
   const handleAcceptTerms = async () => {
-    if (!agreed || isSubmitting) {
+    if (!isAllAgreed || isSubmitting) {
       return;
     }
     setIsSubmitting(true);
@@ -177,47 +186,115 @@ function TermsAgreementScreen() {
           서비스 이용에 필요한 필수 약관이에요.
         </Text>
 
-        <View style={styles.agreementCard}>
+        <View style={styles.cardContainer}>
+          {/* 전체 동의 */}
           <Pressable
             accessibilityRole="checkbox"
-            accessibilityLabel="필수 혼행등대 이용약관 동의"
-            accessibilityState={{ checked: agreed }}
-            onPress={() => setAgreed(value => !value)}
-            style={styles.agreementToggle}
+            accessibilityLabel="약관 전체 동의"
+            accessibilityState={{ checked: isAllAgreed }}
+            onPress={handleToggleAll}
+            style={styles.allAgreementRow}
           >
-            <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-              {agreed ? (
+            <View
+              style={[
+                styles.checkbox,
+                styles.checkboxLarge,
+                isAllAgreed && styles.checkboxChecked,
+              ]}
+            >
+              {isAllAgreed ? (
                 <CheckIcon
                   color={colors.textOnPrimary}
-                  size={16}
+                  size={18}
                   weight="bold"
                 />
               ) : null}
             </View>
-            <Text style={styles.agreementLabel}>
-              <Text style={styles.required}>[필수] </Text>
-              혼행등대 이용약관 동의
-            </Text>
+            <Text style={styles.allAgreementLabel}>약관 전체 동의</Text>
           </Pressable>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel="혼행등대 이용약관 보기"
-            hitSlop={8}
-            onPress={() => openDocument('이용약관', termsUrl ?? TERMS_OF_SERVICE_URL)}
-          >
-            <Text style={styles.viewLabel}>보기</Text>
-          </Pressable>
-        </View>
 
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="개인정보 처리방침"
-          hitSlop={8}
-          onPress={() => openDocument('개인정보 처리방침', PRIVACY_POLICY_URL)}
-          style={styles.privacyLink}
-        >
-          <Text style={styles.privacyLinkText}>개인정보 처리방침</Text>
-        </Pressable>
+          <View style={styles.divider} />
+
+          {/* 1. 필수 혼행등대 이용약관 */}
+          <View style={styles.itemRow}>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityLabel="필수 혼행등대 이용약관 동의"
+              accessibilityState={{ checked: termsAgreed }}
+              onPress={() => setTermsAgreed(v => !v)}
+              style={styles.itemToggle}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  termsAgreed && styles.checkboxChecked,
+                ]}
+              >
+                {termsAgreed ? (
+                  <CheckIcon
+                    color={colors.textOnPrimary}
+                    size={14}
+                    weight="bold"
+                  />
+                ) : null}
+              </View>
+              <Text style={styles.itemLabel}>
+                <Text style={styles.required}>[필수] </Text>
+                혼행등대 이용약관 동의
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="혼행등대 이용약관 보기"
+              hitSlop={8}
+              onPress={() =>
+                openDocument('이용약관', termsUrl ?? TERMS_OF_SERVICE_URL)
+              }
+            >
+              <Text style={styles.viewLabel}>보기</Text>
+            </Pressable>
+          </View>
+
+          {/* 2. 필수 개인정보 수집 및 이용 동의 */}
+          <View style={styles.itemRow}>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityLabel="필수 개인정보 수집 및 이용 동의"
+              accessibilityState={{ checked: privacyAgreed }}
+              onPress={() => setPrivacyAgreed(v => !v)}
+              style={styles.itemToggle}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  privacyAgreed && styles.checkboxChecked,
+                ]}
+              >
+                {privacyAgreed ? (
+                  <CheckIcon
+                    color={colors.textOnPrimary}
+                    size={14}
+                    weight="bold"
+                  />
+                ) : null}
+              </View>
+              <Text style={styles.itemLabel}>
+                <Text style={styles.required}>[필수] </Text>
+                개인정보 수집 및 이용 동의
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="개인정보 처리방침 보기"
+              hitSlop={8}
+              onPress={() =>
+                openDocument('개인정보 처리방침', PRIVACY_POLICY_URL)
+              }
+            >
+              <Text style={styles.viewLabel}>보기</Text>
+            </Pressable>
+          </View>
+        </View>
 
         {errorMessage ? (
           <View style={styles.errorBanner}>
@@ -230,13 +307,13 @@ function TermsAgreementScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="동의하고 시작하기"
-          accessibilityState={{ disabled: !agreed || isSubmitting }}
-          disabled={!agreed || isSubmitting}
+          accessibilityState={{ disabled: !isAllAgreed || isSubmitting }}
+          disabled={!isAllAgreed || isSubmitting}
           onPress={handleAcceptTerms}
           style={({ pressed }) => [
             styles.primaryButton,
-            (!agreed || isSubmitting) && styles.primaryButtonDisabled,
-            pressed && agreed && !isSubmitting && styles.primaryButtonPressed,
+            (!isAllAgreed || isSubmitting) && styles.primaryButtonDisabled,
+            pressed && isAllAgreed && !isSubmitting && styles.primaryButtonPressed,
           ]}
         >
           {isSubmitting ? (
@@ -245,7 +322,7 @@ function TermsAgreementScreen() {
             <Text
               style={[
                 styles.primaryButtonLabel,
-                !agreed && styles.primaryButtonLabelDisabled,
+                !isAllAgreed && styles.primaryButtonLabelDisabled,
               ]}
             >
               동의하고 시작하기
@@ -293,60 +370,76 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.textSecondary,
   },
-  agreementCard: {
-    minHeight: 68,
-    marginTop: 34,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardContainer: {
+    marginTop: 32,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: 16,
     backgroundColor: colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
-  agreementToggle: {
-    flex: 1,
-    minHeight: 66,
+  allAgreementRow: {
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
+  allAgreementLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 4,
+  },
+  itemRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  itemToggle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  itemLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    color: colors.textPrimary,
+  },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: colors.textTertiary,
-    borderRadius: 7,
+    borderRadius: 6,
     backgroundColor: colors.background,
+  },
+  checkboxLarge: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
   },
   checkboxChecked: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
   },
-  agreementLabel: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 21,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
   required: {
     color: colors.primaryStrong,
+    fontWeight: '600',
   },
   viewLabel: {
-    paddingLeft: 10,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    textDecorationLine: 'underline',
-  },
-  privacyLink: {
-    alignSelf: 'center',
-    marginTop: 18,
-  },
-  privacyLinkText: {
+    paddingLeft: 8,
     fontSize: 13,
     lineHeight: 20,
     color: colors.textSecondary,
